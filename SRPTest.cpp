@@ -6,8 +6,8 @@
 //    	byte []salt = new byte[]    { 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4 };
 //    	byte []pubKeyB = new byte[] { 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8 };
 
-BYTE salt[32] = { 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4 };
-BYTE pubKeyB[32] = { 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8 };
+//BYTE salt[32] = { 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4 };
+//BYTE pubKeyB[32] = { 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8 };
 
 
 int main(int argc, char *argv[])
@@ -15,6 +15,17 @@ int main(int argc, char *argv[])
 	//Init the storm class ##########################
 	Storm *InitializedStormClass = Storm::Instance();
 	//###############################################
+	
+	//############################################### <Account creation initial Salt + Verifier>
+	char Username[] = "Srp3Test";
+	char Password[] = "asdfasdf";
+	BYTE salt[BIGINT_SIZE];
+	BYTE verify[BIGINT_SIZE];
+	BSRP *InitialSRP = new BSRP();
+	MakeCreate(Username, Password, salt, verify);
+	delete InitialSRP;
+	InitialSRP = NULL;
+	//############################################### <Continue playing around now that we got our initial falues>
 
 	BnSRP *srp = new BnSRP();
 
@@ -29,7 +40,7 @@ int main(int argc, char *argv[])
 
 	BYTE proof[32];
 	memset(proof, 0, 32);
-	srp->MakeProof(proof, "iago", "password", salt, pubKeyB);
+	srp->MakeProof(proof, Username, Password, salt, pubKeyB);
 
 	printf("Proof: ");
 	for(int i = 0; i < 32; i++)
