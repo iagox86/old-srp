@@ -38,8 +38,26 @@ public:
 	//Additions
 	typedef void(__stdcall * SBigMod)(BigBuffer result, BigBuffer a, BigBuffer b); // 621
 	typedef void(__stdcall * SBigPow)(BigBuffer result, BigBuffer a, BigBuffer b); // 627
-	typedef void(__stdcall * SBigXor)(BigBuffer result, BigBuffer a, BigBuffer b); // 647
 
+	/*
+		SBigXor
+			Equivilant to:
+				Return2[i] = A_bytes[i] ^ B_btyes[i]
+
+		return values
+			8 Good call
+			1 when a and b were both initialized with int 0
+	*/
+	typedef int(__stdcall *SBigXor)(BigBuffer result, BigBuffer a, BigBuffer b); // 647
+
+	/* 
+		Dosent realy seem like a Rand at all, 
+			result1 Output can fill a big int.
+			constantvalue, dosent change after the call
+			result2 Seems like a UINT64 output. (when using a full BigBuffer on  as the constantvalue)
+	*/
+	typedef void(__stdcall * SBigRand)(BigBuffer result1, BigBuffer constantvalue, BigBuffer result2); // 629
+	
 
 	SBigNew BigNew;
 	SBigDel BigDel;
@@ -54,7 +72,7 @@ public:
 	SBigPow BigPow;
 	SBigXor BigXor;
 	SBigCompare BigCompare;
-
+	SBigRand BigRand;
 	void BigIntegerToBytes(BigBuffer BigInt, void *Buf, DWORD Len = BIGINT_SIZE);
 	BigBuffer BigIntegerFromBytes(const void *Buf, DWORD Len = BIGINT_SIZE);
 	BigBuffer BigIntegerFromInt(DWORD num);
