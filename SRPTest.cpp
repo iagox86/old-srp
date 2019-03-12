@@ -12,7 +12,11 @@ BYTE pubKeyB[32] = { 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8,
 
 int main(int argc, char *argv[])
 {
-	BnSRP *srp = new BnSRP("c:\\storm.dll");
+	//Init the storm class ##########################
+	Storm *InitializedStormClass = Storm::Instance();
+	//###############################################
+
+	BnSRP *srp = new BnSRP();
 
 	BYTE auth[32];
 	memset(auth, 0, 32);
@@ -34,6 +38,10 @@ int main(int argc, char *argv[])
 
 	delete srp;
 
+	//destroy the storm class #######################
+	Storm::Release();
+	InitializedStormClass = NULL;
+	//###############################################
 	system("pause");
 
 	return 0;
