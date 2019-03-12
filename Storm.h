@@ -9,7 +9,8 @@
 
 
 /*  Currently useing 1.0.9.0 storm.dll */
-#define StormLocation "./storm.dll"
+static char StormLocation[2][20] = { "./Storm12606401.dll", "./Storm1075535.dll" };
+
 typedef void * BigBuffer;
 
 class Storm {
@@ -36,8 +37,10 @@ public:
 	typedef void(__stdcall * SBigMul)(BigBuffer result, BigBuffer a, BigBuffer b); // 622
 	typedef int(__stdcall *SBigCompare)(BigBuffer a, BigBuffer b); // 603
 	//Additions
-	typedef void(__stdcall * SBigMod)(BigBuffer result, BigBuffer a, BigBuffer b); // 621
-	typedef void(__stdcall * SBigPow)(BigBuffer result, BigBuffer a, BigBuffer b); // 627
+
+	/* assuming bad inputs */
+	//typedef int(__stdcall * SBigMod)(BigBuffer result, BigBuffer a, BigBuffer b); // 621 (base returns something just dont know what) (result returns a, a returns a, b returns b)
+	//typedef void(__stdcall * SBigPow)(BigBuffer result, BigBuffer a, BigBuffer b); // 627
 
 	/*
 		SBigXor
@@ -48,11 +51,11 @@ public:
 			8 Good call
 			1 when a and b were both initialized with int 0
 	*/
-	typedef int(__stdcall *SBigXor)(BigBuffer result, BigBuffer a, BigBuffer b); // 647
+	typedef int(__stdcall * SBigXor)(BigBuffer result, BigBuffer a, BigBuffer b); // 647
 
 	/* 
 		Dosent realy seem like a Rand at all, 
-			result1 Output can fill a big int.
+			result1 Output can fill a BigBuffer.
 			constantvalue, dosent change after the call
 			result2 Seems like a UINT64 output. (when using a full BigBuffer on  as the constantvalue)
 	*/
@@ -67,9 +70,9 @@ public:
 	SBigToBinaryBuffer BigToBinaryBuffer;
 	SBigAdd BigAdd;
 	SBigSub BigSub;
-	SBigMod BigMod;
+	//SBigMod BigMod; //asuming wrong input types.
 	SBigMul BigMul;
-	SBigPow BigPow;
+	//SBigPow BigPow; //asuming wrong input types.
 	SBigXor BigXor;
 	SBigCompare BigCompare;
 	SBigRand BigRand;
