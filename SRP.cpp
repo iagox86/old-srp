@@ -1,73 +1,58 @@
-#include "SRP.h"
-#include <stdlib.h>
-#include <time.h>
-#include <stdio.h>
+#include "bnSRP.h"
 
 #define GETADDRESS(ord) GetProcAddress(hStorm, (LPCSTR)ord)
 #define BSWAP(a,b,c,d) ((((((a << 8) | b) << 8) | c) << 8) | d)
 
-unsigned char *MakeSessionKey(unsigned char *dest,
-							  unsigned char*data,
-							  unsigned int length);
-
-void displayArray(BYTE *array, int length)
+/*BnSRP::BnSRP()
 {
-	for(int i = 0; i < length; i++)
-		printf("%02x ", array[i]);
-	printf("\n\n");
-}
+	exit(1);
+}*/
 
 BnSRP::BnSRP()
 {
-	exit(1);
-}
-
-BnSRP::BnSRP(char *Storm)
-{
-	InitStorm(Storm);
 	InitVars();
 }
 
 BnSRP::~BnSRP()
 {
-	BigDel(this->Modulus);
-	BigDel(this->Generator);
-	BigDel(this->PrivKey);
-	BigDel(this->PubKeyA);
+	mStorm->BigDel(this->Modulus);
+	mStorm->BigDel(this->Generator);
+	mStorm->BigDel(this->PrivKey);
+	mStorm->BigDel(this->PubKeyA);
 
 	FreeLibrary(this->hStorm);
 }
 
 void BnSRP::InitVars()
 {
-	static const BYTE ModulusRaw[BIGINT_SIZE] = {	0x87, 0xc7, 0x23, 0x85, 0x65, 0xf6, 0x16, 0x12,
+	static const BYTE ModulusRaw[BIGINT_SIZE] = { 0x87, 0xc7, 0x23, 0x85, 0x65, 0xf6, 0x16, 0x12,
 													0xd9, 0x12, 0x32, 0xc7, 0x78, 0x6c, 0x97, 0x7e,
 													0x55, 0xb5, 0x92, 0xa0, 0x8c, 0xb6, 0x86, 0x21,
-													0x03, 0x18, 0x99, 0x61, 0x8b, 0x1a, 0xff, 0xf8	};
+													0x03, 0x18, 0x99, 0x61, 0x8b, 0x1a, 0xff, 0xf8 };
 
 	static const BYTE tempPrivKey[BIGINT_SIZE] = { 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8 };
 
 	static const unsigned int GeneratorRaw = 47;
 
 	BYTE Buf1[SHA_DIGESTSIZE], Buf2[SHA_DIGESTSIZE];
-	BYTE Key[BIGINT_SIZE];
+//	BYTE Key[BIGINT_SIZE];
 	SHA1_CTX ctx;
-	
+
 	// generate values
-	BigNew(&this->Modulus);
-	BigNew(&this->PrivKey);
-	BigNew(&this->PubKeyA);
-	this->Generator = BigIntegerFromInt(GeneratorRaw);
-	this->Modulus = BigIntegerFromBytes(ModulusRaw);
-	//this->PrivKey = BigIntegerFromBytes(GenKey(Key));
-	this->PrivKey = BigIntegerFromBytes(tempPrivKey);
+	mStorm->BigNew(&this->Modulus);
+	mStorm->BigNew(&this->PrivKey);
+	mStorm->BigNew(&this->PubKeyA);
+	this->Generator = mStorm->BigIntegerFromInt(GeneratorRaw);
+	this->Modulus = mStorm->BigIntegerFromBytes(ModulusRaw);
+	//this->PrivKey = mStorm->BigIntegerFromBytes(GenKey(Key));
+	this->PrivKey = mStorm->BigIntegerFromBytes(tempPrivKey);
 	printf("The friggin' key is MADE!\n\n\n");
-	
+
 	SHA1Init(&ctx);
 	SHA1Update(&ctx, ModulusRaw, BIGINT_SIZE);
 	SHA1Final(Buf1, &ctx); // Buf1 = H(modulus)
 	printf("Original Buf1: ");
-	for(int i = 0; i < SHA_DIGESTSIZE; i++)
+	for (int i = 0; i < SHA_DIGESTSIZE; i++)
 		printf("%02x ", Buf1[i]);
 	printf("\n\n");
 
@@ -76,12 +61,12 @@ void BnSRP::InitVars()
 	SHA1Final(Buf2, &ctx); // Buf2 = H(generator)
 
 	printf("Buf2: ");
-	for(int i = 0; i < SHA_DIGESTSIZE; i++)
+	for (int i = 0; i < SHA_DIGESTSIZE; i++)
 		printf("%02x ", Buf2[i]);
 	printf("\n\n");
 
 	printf("Buf1: ");
-	for(int i = 0; i < SHA_DIGESTSIZE; ++i)
+	for (int i = 0; i < SHA_DIGESTSIZE; ++i)
 	{
 		Buf1[i] ^= Buf2[i];	// buf1 = H(modulus) xor H(generator)
 		printf("%02x ", Buf1[i]);
@@ -94,33 +79,14 @@ void BnSRP::InitVars()
 
 }
 
-bool BnSRP::InitStorm(const char *Storm)
-{
-	if( !(this->hStorm = LoadLibrary(Storm)) )
-		return false;
-
-	BigNew = (SBigNew)GETADDRESS(624);
-	BigDel = (SBigDel)GETADDRESS(606);
-	BigPowMod = (SBigPowMod)GETADDRESS(628);
-	BigFromUnsigned = (SBigFromUnsigned)GETADDRESS(612);
-	BigFromBinary = (SBigFromBinary)GETADDRESS(609);
-	BigToBinaryBuffer = (SBigToBinaryBuffer)GETADDRESS(638);
-	BigAdd = (SBigAdd)GETADDRESS(601);
-	BigSub = (SBigSub)GETADDRESS(636);
-	BigCompare = (SBigCompare)GETADDRESS(603);
-	BigMul = (SBigMul)GETADDRESS(622);
-
-	return true;
-}
-
 // returns a 32 byte result in buf
 void BnSRP::MakeAuth(void *Buf)
 {
-	BigPowMod(this->PubKeyA, this->Generator, this->PrivKey, this->Modulus);
-	BigIntegerToBytes(this->PubKeyA, Buf);
+	mStorm->BigPowMod(this->PubKeyA, this->Generator, this->PrivKey, this->Modulus);
+	mStorm->BigIntegerToBytes(this->PubKeyA, Buf);
 
 	printf("PubKeyA: ");
-	for(int i = 0; i < 32; i++)
+	for (int i = 0; i < 32; i++)
 		printf("%02x ", ((BYTE*)Buf)[i]);
 	printf("\n");
 
@@ -129,10 +95,10 @@ void BnSRP::MakeAuth(void *Buf)
 
 // returns a 20 byte hash
 void BnSRP::MakeProof(void *Buf,
-					  const char *User,
-					  const char *Pass,
-					  void *Salt,
-					  void *PubKeyB)
+	const char *User,
+	const char *Pass,
+	void *Salt,
+	void *PubKeyB)
 {
 	char Username[32];
 	char Password[32];
@@ -140,13 +106,13 @@ void BnSRP::MakeProof(void *Buf,
 	BYTE SessionData[BIGINT_SIZE];
 	SHA1_CTX ctx;
 
-	BigBuffer x, v, u, gb; 
+	BigBuffer x, v, u, gb;
 
 	strncpy(Username, User, sizeof(Username) - 1);
 	strncpy(Password, Pass, sizeof(Password) - 1);
 	_strupr(Username);
 	_strupr(Password);
-	
+
 	SHA1Init(&ctx);
 	SHA1Update(&ctx, (BYTE *)Username, (UINT)strlen(Username));
 	SHA1Final(Hash, &ctx);
@@ -174,83 +140,58 @@ void BnSRP::MakeProof(void *Buf,
 	SHA1Update(&ctx, Hash, sizeof(Hash));
 	SHA1Final(Hash, &ctx);
 
-	x = BigIntegerFromBytes(Hash, SHA_DIGESTSIZE);
+	x = mStorm->BigIntegerFromBytes(Hash, SHA_DIGESTSIZE);
 
 	// compute v = g^x
-	v = BigIntegerFromInt(0);
-	BigPowMod(v, this->Generator, x, this->Modulus);
+	v = mStorm->BigIntegerFromInt(0);
+	mStorm->BigPowMod(v, this->Generator, x, this->Modulus);
 
 	// compute u
 	BYTE KeyDataA[BIGINT_SIZE];
-	BigIntegerToBytes(this->PubKeyA, KeyDataA);
-	
+	mStorm->BigIntegerToBytes(this->PubKeyA, KeyDataA);
+
 	SHA1Init(&ctx);
 	SHA1Update(&ctx, (BYTE *)PubKeyB, BIGINT_SIZE);
-	SHA1Final(Hash, &ctx); 
+	SHA1Final(Hash, &ctx);
 
-	u = BigIntegerFromInt(BSWAP(Hash[0], Hash[1], Hash[2], Hash[3]));
+	u = mStorm->BigIntegerFromInt(BSWAP(Hash[0], Hash[1], Hash[2], Hash[3]));
 
 	// unblind g^b (mod N)
-	gb = BigIntegerFromBytes(PubKeyB);
-	if(BigCompare(gb, v) < 0)
-		BigAdd(gb, gb, this->Modulus);
-	BigSub(gb, gb, v);
+	gb = mStorm->BigIntegerFromBytes(PubKeyB);
+	if (mStorm->BigCompare(gb, v) < 0)
+		mStorm->BigAdd(gb, gb, this->Modulus);
+	mStorm->BigSub(gb, gb, v);
 
-	BigDel(v);
+	mStorm->BigDel(v);
 
 	// compute gb^(a + ux) (mod N)
-	BigBuffer e = BigIntegerFromInt(0);
-	BigMul(e, x, u); // e = ux
-	BigAdd(e, e, this->PrivKey); // e = a + ux
-    
-	BigDel(u);
-	BigDel(x);
+	BigBuffer e = mStorm->BigIntegerFromInt(0);
+	mStorm->BigMul(e, x, u); // e = ux
+	mStorm->BigAdd(e, e, this->PrivKey); // e = a + ux
 
-	BigBuffer S = BigIntegerFromInt(0);
-	BigPowMod(S, gb, e, this->Modulus); // gb^(a + ux)
+	mStorm->BigDel(u);
+	mStorm->BigDel(x);
 
-	BigDel(e);
-	BigDel(gb);
+	BigBuffer S = mStorm->BigIntegerFromInt(0);
+	mStorm->BigPowMod(S, gb, e, this->Modulus); // gb^(a + ux)
+
+	mStorm->BigDel(e);
+	mStorm->BigDel(gb);
 
 	// hash: (H(N) xor H(g)) | H(U) | s | A
 	SHA1Update(&this->TotalCtx, KeyDataA, BIGINT_SIZE);
 	// hash: (H(N) xor H(g)) | H(U) | s | A | B
 	SHA1Update(&this->TotalCtx, (BYTE *)PubKeyB, BIGINT_SIZE);
 
-	BigIntegerToBytes(S, SessionData);
+	mStorm->BigIntegerToBytes(S, SessionData);
 	::MakeSessionKey(this->SessionKey, SessionData, BIGINT_SIZE);
-	BigDel(S);
+	mStorm->BigDel(S);
 
 	// hash: (H(N) xor H(g)) | H(U) | s | A | B | K
 	SHA1Update(&this->TotalCtx, this->SessionKey, sizeof(this->SessionKey));
 
 	// put final hash in buffer
 	SHA1Final((BYTE *)Buf, &this->TotalCtx);
-}
-
-BigBuffer BnSRP::BigIntegerFromBytes(const void *Buf, DWORD Len)
-{
-	BigBuffer BigInt;
-
-	BigNew(&BigInt);
-	BigFromBinary(BigInt, Buf, Len);
-
-	return BigInt;
-}
-
-void BnSRP::BigIntegerToBytes(BigBuffer BigInt, void *Buf, DWORD Len)
-{
-	BigToBinaryBuffer(BigInt, Buf, Len, &Len);
-}
-
-BigBuffer BnSRP::BigIntegerFromInt(DWORD num)
-{
-	BigBuffer BigInt;
-	
-	BigNew(&BigInt);
-	BigFromUnsigned(BigInt, num);
-
-	return BigInt;
 }
 
 BYTE *BnSRP::GenKey(BYTE *data)
@@ -261,12 +202,12 @@ BYTE *BnSRP::GenKey(BYTE *data)
 
 	memset(randout, 0, sizeof(randout));
 	memset(randpool, 0, sizeof(randpool));
-	
+
 	srand((unsigned)time(NULL));
 
-	while(size > outpos)
+	while (size > outpos)
 	{
-		if(outpos > 0)
+		if (outpos > 0)
 		{
 			memcpy(data, randout + (sizeof(randout) - outpos), outpos);
 			data += outpos;
@@ -280,17 +221,17 @@ BYTE *BnSRP::GenKey(BYTE *data)
 		SHA1Init(&ctxt);
 		SHA1Update(&ctxt, randpool, sizeof(randpool));
 		SHA1Final(randout, &ctxt);
-		
+
 		SHA1Init(&ctxt);
-		SHA1Update(&ctxt, (unsigned char *) &randcnt, sizeof(randcnt));
+		SHA1Update(&ctxt, (unsigned char *)&randcnt, sizeof(randcnt));
 		SHA1Update(&ctxt, randpool, sizeof(randpool));
 		SHA1Final(randpool, &ctxt);
-		
+
 		++randcnt;
 		outpos = sizeof(randout);
 	}
 
-	if(size > 0)
+	if (size > 0)
 	{
 		memcpy(data, randout + (sizeof(randout) - outpos), size);
 		outpos -= size;
@@ -299,69 +240,89 @@ BYTE *BnSRP::GenKey(BYTE *data)
 	return data;
 }
 
+void BnSRP::GenerateSalt(void *Buf) {
+	BYTE Buffer[BIGINT_SIZE];
+	srand(time(NULL));
+	for (int i = 0; i < 32; i++) {
+		Buffer[i] = (rand() % 255);
+	}
+	memcpy(Buf, Buffer, BIGINT_SIZE);
+}
+
 /*
- * The interleaved session-key hash.  This separates the even and the odd
- * bytes of the input (ignoring the first byte if the input length is odd),
- * hashes them separately, and re-interleaves the two outputs to form a
- * single 320-bit value.
- */
-unsigned char *MakeSessionKey(unsigned char *key,
-							  unsigned char *sk,
-							  unsigned int sklen)
-{
-	unsigned int i, klen;
-	unsigned char *hbuf;
-	unsigned char hout[SHA_DIGESTSIZE];
-	SHA1_CTX ctxt;
+	Buf[SHA_DIGESTSIZE]
+	Buf is the output of the account initial hash SHA1(USERNAME ":" PASSWORD)
 
-	if(!sklen) 
-		return NULL;
+	*User
+	USERNAME
 
-	while(key && !*sk)
-	{
-		sk++;
-		key--;
-	}
+	*Pass
+	PASSWORD
+*/
+void BnSRP::HashAccount(void *Buf, const char *User, const char *Pass) {
+	char Username[32];
+	char Password[32];
+	SHA1_CTX ctx;
 
-	if (sklen == 1)
-	{
-		sk++;
-		sklen--;
-	}
+	strncpy_s(Username, User, sizeof(Username) - 1);
+	strncpy_s(Password, Pass, sizeof(Password) - 1);
+	_strupr_s(Username);
+	_strupr_s(Password);
 
-	klen = sklen >> 1;
+	SHA1Init(&ctx);
+	SHA1Update(&ctx, (BYTE *)Username, (UINT)strlen(Username));
+	SHA1Update(&ctx, (BYTE *)":", 1);
+	SHA1Update(&ctx, (BYTE *)Password, (UINT)strlen(Password));
+	SHA1Final((BYTE *)Buf, &ctx);
+}
 
-	if (!(hbuf = (unsigned char *)malloc(klen * sizeof(char))))
-		return NULL;
+/*
+	clienthash[SHA_DIGESTSIZE]
+	to get X use HashAccount to get clienthash
 
-	memset(hbuf, 0, klen);
+	salt[BIGINT_SIZE]
+	salt is given to you from the server
+	salt is also created during create account
+*/
+void BnSRP::GetX(void *clienthash, void *salt) {
+	SHA1_CTX ctx;
+	SHA1Init(&ctx);
+	SHA1Update(&ctx, (BYTE *)salt, BIGINT_SIZE);
+	SHA1Update(&ctx, (BYTE *)clienthash, SHA_DIGESTSIZE);
+	SHA1Final((BYTE *)clienthash, &ctx);
+}
 
-	if (klen)
-	{
-		for(i = 0; i < klen; ++i)
-			hbuf[i] = sk[i * 2];
-	}
+void BnSRP::GenerateVerifyFromSalt(const char *User, const char *Pass, void *Salt, void *v) {
+	BYTE Hash[SHA_DIGESTSIZE];
+	BigBuffer x, verify;
 
-	SHA1Init(&ctxt);
-	SHA1Update(&ctxt, hbuf, klen);
-	SHA1Final(hout, &ctxt);
+	//TODO: throw error if !user or !pass or !Salt or !v
 
-	for(i = 0; i < sizeof(hout); ++i)
-		key[i * 2] = hout[i];
+	//get x
+	HashAccount(Hash, User, Pass);
+	GetX(Hash, Salt);
+	x = mStorm->BigIntegerFromBytes(Hash, SHA_DIGESTSIZE);
 
-	if(klen)
-	{
-		for (i = 0; i < klen; ++i)
-			hbuf[i] = sk[2 * i + 1];
-	}
+	//get v
+	verify = mStorm->BigIntegerFromInt(0);
+	mStorm->BigPowMod(verify, this->Generator, x, this->Modulus);
 
-	SHA1Init(&ctxt);
-	SHA1Update(&ctxt, hbuf, klen);
-	SHA1Final(hout, &ctxt);
+	//set v
+	mStorm->BigIntegerToBytes(verify, (BYTE *)v, BIGINT_SIZE);
 
-	for(i = 0; i < sizeof(hout); ++i)
-		key[2 * i + 1] = hout[i];
+	printf("verifyer #1 (%s) --> ", User);
+	displayArray((BYTE *)v, BIGINT_SIZE);
 
-	free(hbuf);
-	return key;
+	mStorm->BigDel(x);
+	mStorm->BigDel(verify);
+}
+/*
+	*User, USERNAME
+	*Pass, PASSWORD
+	salt_out[BIGINT_SIZE], create account salt
+	v_out[BIGINT_SIZE], create account v
+*/
+void BnSRP::MakeCreate(const char *User, const char *Pass, void *salt_out, void *v_out) {
+	GenerateSalt(salt_out);
+	GenerateVerifyFromSalt(User, Pass, salt_out, v_out);
 }
