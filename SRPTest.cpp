@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	MakeCreate(Username, Password, salt, verify);
 	delete InitialSRP;
 	InitialSRP = NULL;
-	//############################################### <Continue playing around now that we got our initial falues>
+	//############################################### <Continue playing around now that we got our initial values>
 
 	BnSRP *srp = new BnSRP();
 
