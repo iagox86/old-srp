@@ -15,17 +15,6 @@ int main(int argc, char *argv[])
 	//Init the storm class ##########################
 	Storm *InitializedStormClass = Storm::Instance();
 	//###############################################
-	
-	//############################################### <Account creation initial Salt + Verifier>
-	char Username[] = "Srp3Test"; //
-	char Password[] = "asdfasdf";
-	BYTE salt[BIGINT_SIZE];
-	BYTE verify[BIGINT_SIZE];
-	BnSRP *InitialSRP = new BnSRP();
-	MakeCreate(Username, Password, salt, verify);
-	delete InitialSRP;
-	InitialSRP = NULL;
-	//############################################### <Continue playing around now that we got our initial values>
 
 	BnSRP *srp = new BnSRP();
 
