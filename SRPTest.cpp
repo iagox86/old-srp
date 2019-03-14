@@ -17,11 +17,11 @@ int main(int argc, char *argv[])
 	//###############################################
 	
 	//############################################### <Account creation initial Salt + Verifier>
-	char Username[] = "Srp3Test";
+	char Username[] = "Srp3Test"; //
 	char Password[] = "asdfasdf";
 	BYTE salt[BIGINT_SIZE];
 	BYTE verify[BIGINT_SIZE];
-	BSRP *InitialSRP = new BSRP();
+	BnSRP *InitialSRP = new BnSRP();
 	MakeCreate(Username, Password, salt, verify);
 	delete InitialSRP;
 	InitialSRP = NULL;
