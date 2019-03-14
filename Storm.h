@@ -35,8 +35,20 @@ public:
 	typedef void(__stdcall * SBigAdd)(BigBuffer result, BigBuffer a, BigBuffer b); // 601
 	typedef void(__stdcall * SBigSub)(BigBuffer result, BigBuffer a, BigBuffer b); // 636
 	typedef void(__stdcall * SBigMul)(BigBuffer result, BigBuffer a, BigBuffer b); // 622
+
+	/*
+		Sneaky bastards. (-1 a<b, 0 a==b, 1 a>b)
+		if a is < b the return is -1
+		if a == b the return is 0
+		if a > b the return is 1
+	*/
 	typedef int(__stdcall *SBigCompare)(BigBuffer a, BigBuffer b); // 603
+
 	//Additions
+	typedef void(__stdcall * SBigDiv)(BigBuffer result, BigBuffer a, BigBuffer b); // 607
+	//typedef void(__stdcall * SBigShl)(BigBuffer result, BigBuffer a, int bytesToShift); // 633
+	//typedef void(__stdcall * SBigShr)(BigBuffer result, BigBuffer a, int bytesToShift); // 644
+	//typedef void(__stdcall * SBigCopy)(BigBuffer result, BigBuffer copythis); //604
 
 	/* assuming bad inputs */
 	//typedef int(__stdcall * SBigMod)(BigBuffer result, BigBuffer a, BigBuffer b); // 621 (base returns something just dont know what) (result returns a, a returns a, b returns b)
@@ -70,8 +82,12 @@ public:
 	SBigToBinaryBuffer BigToBinaryBuffer;
 	SBigAdd BigAdd;
 	SBigSub BigSub;
-	//SBigMod BigMod; //asuming wrong input types.
+	//SBigMod BigMod;
 	SBigMul BigMul;
+	SBigDiv BigDiv;
+	//SBigShl BigShl;
+	//SBigShr BigShr;
+	//SBigCopy BigCopy;
 	//SBigPow BigPow; //asuming wrong input types.
 	SBigXor BigXor;
 	SBigCompare BigCompare;
