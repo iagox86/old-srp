@@ -11,8 +11,7 @@ Storm *Storm::Instance() {
 }
 
 Storm::Storm() {
-	char sLocation[12] = "./storm.dll";
-	InitStorm(sLocation);
+	InitStorm(StormLocation[0]);
 }
 
 Storm::~Storm() {
@@ -38,10 +37,14 @@ bool Storm::InitStorm(char *storm) {
 	BigSub = (SBigSub)GETADDRESS(636);
 	BigCompare = (SBigCompare)GETADDRESS(603);
 	BigMul = (SBigMul)GETADDRESS(622);
-	BigMod = (SBigMod)GETADDRESS(621);
-	BigPow = (SBigPow)GETADDRESS(627);
-	BigXor = (SBigPow)GETADDRESS(647);
-
+	//BigMod = (SBigMod)GETADDRESS(621); //input issues (this can be cheated PowMod exponent value 1)
+	//BigPow = (SBigPow)GETADDRESS(627); //input issues
+	BigXor = (SBigXor)GETADDRESS(647);
+	BigRand = (SBigRand)GETADDRESS(629);
+	BigDiv = (SBigDiv)GETADDRESS(607);
+	//BigShl = (SBigShl)GETADDRESS(633);
+	//BigShr = (SBigShr)GETADDRESS(634);
+	BigCopy = (SBigCopy)GETADDRESS(604); //..
 	return true;
 }
 
@@ -57,7 +60,9 @@ BigBuffer Storm::BigIntegerFromBytes(const void *Buf, DWORD Len)
 
 void Storm::BigIntegerToBytes(BigBuffer BigInt, void *Buf, DWORD Len)
 {
-	BigToBinaryBuffer(BigInt, Buf, Len, &Len);
+	DWORD lengthout = 0;
+	BigToBinaryBuffer(BigInt, Buf, Len, &lengthout);
+	lengthout;
 }
 
 BigBuffer Storm::BigIntegerFromInt(DWORD num)
