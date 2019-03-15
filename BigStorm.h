@@ -20,6 +20,8 @@ public:
 	//Initalizers
 	BigStorm();
 	explicit BigStorm(const unsigned char *bytes, unsigned int lengthof);
+	explicit BigStorm(const unsigned char *bytes, unsigned int lengthof, bool random);
+	//explicit BigStorm(const BigStorm& modulus); //illegal
 	explicit BigStorm(const UINT32 data);
 	~BigStorm() throw ();
 
@@ -53,6 +55,9 @@ public:
 	bool		operator>	(const BigStorm& right) const; //[good]
 	bool		operator<	(const UINT32& right)	const; //[good]
 	bool		operator<	(const BigStorm& right) const; //[good]
+
+	//PowMod
+	BigStorm PowMod(const BigStorm& exponent, const BigStorm& modulus) const;
 
 	//dump hex
 	void DumpHex(void);

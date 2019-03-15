@@ -18,6 +18,22 @@ BigStorm::BigStorm(const unsigned char *bytes, unsigned int lengthof) {
 	frombytes(bytes, lengthof);
 }
 
+/*
+	not allowed.
+
+BigStorm::BigStorm(const BigStorm& modulus) {
+	this->m_value = mStorm->BigIntegerFromInt(0);
+	mStorm->BigRand(this->m_value, modulus.m_value, NULL);
+}
+*/
+
+BigStorm::BigStorm(const unsigned char *bytes, unsigned int lengthof, bool random) {
+	BigStorm tmp(0);
+	BigStorm modulus(bytes, lengthof);
+	this->m_value = mStorm->BigIntegerFromInt(0);
+	mStorm->BigRand(this->m_value, modulus.m_value, tmp.m_value);
+}
+
 BigStorm::BigStorm(const UINT32 data) {
 	this->m_value = mStorm->BigIntegerFromInt(data);
 }
@@ -214,7 +230,7 @@ bool BigStorm::operator==(const BigStorm& right) const
 bool BigStorm::operator==(const UINT32& right) const
 {
 	BigStorm r(right);
-	r.DumpHex();
+	//r.DumpHex();
 	if (&r != this) {
 		int result = mStorm->BigCompare(this->m_value, r.m_value);
 		if (result == 0) {
@@ -267,6 +283,18 @@ bool BigStorm::operator<(const BigStorm& right) const
 		return false;
 	}
 	return false;
+}
+
+BigStorm BigStorm::PowMod(const BigStorm& exponent, const BigStorm& modulus) const {
+	BigStorm out, val1, val2, val3;
+	val1 = *this; val2 = exponent; val3 = modulus;
+
+	//val1.DumpHex();
+	//val2.DumpHex();
+	//val3.DumpHex();
+
+	mStorm->BigPowMod(out.m_value, val1.m_value, val2.m_value, val3.m_value);
+	return out;
 }
 
 void BigStorm::DumpHex(void) {
