@@ -44,7 +44,7 @@ bool Storm::InitStorm(char *storm) {
 	BigDiv = (SBigDiv)GETADDRESS(607);
 	//BigShl = (SBigShl)GETADDRESS(633);
 	//BigShr = (SBigShr)GETADDRESS(634);
-	//BigCopy = (SBigCopy)GETADDRESS(604);
+	BigCopy = (SBigCopy)GETADDRESS(604); //..
 	return true;
 }
 

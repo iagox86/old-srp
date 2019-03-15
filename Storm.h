@@ -48,7 +48,7 @@ public:
 	typedef void(__stdcall * SBigDiv)(BigBuffer result, BigBuffer a, BigBuffer b); // 607
 	//typedef void(__stdcall * SBigShl)(BigBuffer result, BigBuffer a, int bytesToShift); // 633
 	//typedef void(__stdcall * SBigShr)(BigBuffer result, BigBuffer a, int bytesToShift); // 644
-	//typedef void(__stdcall * SBigCopy)(BigBuffer result, BigBuffer copythis); //604
+	typedef void(__stdcall * SBigCopy)(BigBuffer result, BigBuffer copythis); //604
 
 	/* assuming bad inputs */
 	//typedef int(__stdcall * SBigMod)(BigBuffer result, BigBuffer a, BigBuffer b); // 621 (base returns something just dont know what) (result returns a, a returns a, b returns b)
@@ -87,7 +87,7 @@ public:
 	SBigDiv BigDiv;
 	//SBigShl BigShl;
 	//SBigShr BigShr;
-	//SBigCopy BigCopy;
+	SBigCopy BigCopy;
 	//SBigPow BigPow; //asuming wrong input types.
 	SBigXor BigXor;
 	SBigCompare BigCompare;

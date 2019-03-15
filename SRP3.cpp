@@ -1,4 +1,5 @@
 #include "SRP3.h"
+#include "HexStrings.h"
 
 #include <cstdio>
 #include <stdexcept>
@@ -124,12 +125,24 @@ void SRP3::SetSalt(const unsigned char *salt_) {
 	s = BigStorm(raw_salt, BIGINT_SIZE);
 }
 
+/*
+	servers set verify
+*/
 void SRP3::SetV(const unsigned char *v_) {
 	if (!v_) {
 		throw std::invalid_argument("SRP3: got NULL v");
 		return;
 	}
 	v = BigStorm(v_, BIGINT_SIZE);
+}
+
+/* 
+	Clients set verify.
+*/
+void SRP3::SetV() {
+	this->v = GetVerifier(); // to get a salt and verify to test against [http://harpywar.pvpgn.pl/?do=srp]
+	//this->v.class_name("Client Manual v");
+	//this->v.DumpHex();
 }
 
 int	SRP3::init(const char* username_, const char* password_, const unsigned char *salt_, const unsigned char *verify_) {
@@ -168,6 +181,7 @@ void SRP3::SetClientA(const unsigned char *A_) {
 	}
 
 	A = BigStorm(A_, BIGINT_SIZE);
+	A.DumpHex();
 }
 
 void SRP3::SetClientA(const BigStorm& A_) {
@@ -270,14 +284,19 @@ BigStorm SRP3::GetServerSecret() {
 	return ((A * v.PowMod(u, N)) % N).PowMod(PrivKey, N);
 }
 
-void SRP3::hashsecret(BigStorm secret, unsigned char* secretoutbuffer) {
+void SRP3::hashsecret(const BigStorm& secret, unsigned char* secretoutbuffer) {
 	int i;
 	unsigned char raw_secret[BIGINT_SIZE];
 	unsigned char odd[16], even[16]; memset(odd, 0, 16); memset(even, 0, 16);
 	unsigned char odd_hash[SHA_DIGESTSIZE], even_hash[SHA_DIGESTSIZE]; memset(odd_hash, 0, SHA_DIGESTSIZE); memset(even_hash, 0, SHA_DIGESTSIZE);
 	SHA1_CTX ctx;
 
-	secret.RetrieveBytes(raw_secret, BIGINT_SIZE);
+	BigStorm s_ = secret;
+	s_.RetrieveBytes(raw_secret, BIGINT_SIZE);
+
+	std::string outhex = "";
+	StringToHex(raw_secret, BIGINT_SIZE, outhex);
+	printf_s("rs1: %s\n", outhex.c_str());
 
 	unsigned char* Sp = raw_secret;
 	unsigned char* op = odd;
@@ -288,6 +307,13 @@ void SRP3::hashsecret(BigStorm secret, unsigned char* secretoutbuffer) {
 		*(ep++) = *(Sp++);
 	}
 
+	outhex = "";
+	StringToHex(odd, 16, outhex);
+	printf_s("odd1: %s\n", outhex.c_str());
+	outhex = "";
+	StringToHex(even, 16, outhex);
+	printf_s("even1: %s\n", outhex.c_str());
+
 	SHA1Init(&ctx);
 	SHA1Update(&ctx, (unsigned char *)odd, 16);
 	SHA1Final((unsigned char *)odd_hash, &ctx);
@@ -295,6 +321,14 @@ void SRP3::hashsecret(BigStorm secret, unsigned char* secretoutbuffer) {
 	SHA1Init(&ctx);
 	SHA1Update(&ctx, (unsigned char *)even, 16);
 	SHA1Final((unsigned char *)even_hash, &ctx);
+
+	outhex = "";
+	StringToHex(even_hash, 20, outhex);
+	printf_s("even-h1: %s\n", outhex.c_str());
+	outhex = "";
+	StringToHex(odd_hash, 20, outhex);
+	printf_s("odd-h1: %s\n", outhex.c_str());
+
 
 	Sp = secretoutbuffer; //point to the out buffer now
 	op = odd_hash;
@@ -306,8 +340,17 @@ void SRP3::hashsecret(BigStorm secret, unsigned char* secretoutbuffer) {
 	}
 }
 
+/*
+	Tested and found working.
+*/
 BigStorm SRP3::GetVerifier() const {
-	return g.PowMod(GetClientPrivateKey(), N);
+	BigStorm pk_, n_, g_;
+	pk_ = GetClientPrivateKey(); n_ = this->N;
+
+	pk_.DumpHex();
+	n_.DumpHex();
+
+	return this->g.PowMod(pk_, n_);
 }
 
 BigStorm SRP3::GetSalt() const {
@@ -317,17 +360,22 @@ BigStorm SRP3::GetSalt() const {
 BigStorm SRP3::GetClientSessionPublicKey() const {
 	BigStorm pk_, n_;
 	pk_ = this->PrivKey; n_ = this->N;
-	//n_.DumpHex();
-	return g.PowMod(pk_, n_);
+
+	pk_.DumpHex();
+	n_.DumpHex();
+
+	return this->g.PowMod(pk_, n_);
 }
 
 void SRP3::GetHashedClientSecret(unsigned char *secretbufferout) {
 	BigStorm clientsecret = GetClientSecret();
+	clientsecret.DumpHex();
 	hashsecret(clientsecret, secretbufferout);
 }
 
 void SRP3::GetHashedServerSecret(unsigned char *secretbufferout) {
 	BigStorm serversecret = GetServerSecret();
+	serversecret.DumpHex();
 	hashsecret(serversecret, secretbufferout);
 }
 

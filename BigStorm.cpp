@@ -70,18 +70,14 @@ void BigStorm::RetrieveBytes(unsigned char *bufferout, unsigned int lengthreques
 
 BigStorm& BigStorm::operator=(const BigStorm& input)
 {
+
 	if (&input != this) {
-		mStorm->BigDel(this->m_value);
-
+		//this->DumpHex();
+		mStorm->BigCopy(this->m_value, input.m_value); //didnt think this was working originally guess it was.
 		this->m_title = input.m_title;
-		
-		BYTE RAW_BYTES[BIGINT_SIZE];
-		memset(RAW_BYTES, 0, BIGINT_SIZE);
-		mStorm->BigIntegerToBytes(input.m_value, RAW_BYTES, BIGINT_SIZE);
-		this->m_value = mStorm->BigIntegerFromBytes(RAW_BYTES, BIGINT_SIZE);
-
-		return *this;
+		//this->DumpHex();
 	}
+
 	return *this;
 }
 
@@ -294,6 +290,7 @@ BigStorm BigStorm::PowMod(const BigStorm& exponent, const BigStorm& modulus) con
 	//val3.DumpHex();
 
 	mStorm->BigPowMod(out.m_value, val1.m_value, val2.m_value, val3.m_value);
+	//out.DumpHex();
 	return out;
 }
 

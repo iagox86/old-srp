@@ -29,6 +29,7 @@ public:
 
 	void SetSalt(const unsigned char *salt_);
 	void SetV(const unsigned char *v_);
+	void SetV();
 	void Reset(bool reinit = false);
 	void SetClientA(const unsigned char *A_);
 	void SetClientA(const BigStorm& A_);
@@ -41,10 +42,10 @@ public:
 	/*
 		secret out buffer must be 40 bytes long
 	*/
-	void hashsecret(BigStorm secret, unsigned char* secretoutbuffer);
+	void hashsecret(const BigStorm& secret, unsigned char* secretoutbuffer);
 
-	BigStorm GetVerifier() const;
-	BigStorm GetSalt() const;
+	BigStorm GetVerifier() const;	//[checked [client] matches given verifier]
+	BigStorm GetSalt() const;		//
 
 	BigStorm GetClientSessionPublicKey() const;
 	BigStorm GetServerSessionPublicKey() const;
