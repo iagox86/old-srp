@@ -24,7 +24,12 @@ int main(void) {
 	A.class_name("S: Client A");
 	Server.SetClientA(A);
 	BigStorm B = Server.GetServerSessionPublicKey();
-	Client.SetSalt(salt);
+
+	//server sends salt and B
+	Client.SetSalt(salt);	// clients original salt to the server at creation
+	//we need our salt to create our original v
+	Client.SetV();			// Client Manual v
+
 	B.class_name("S: Client B");
 	Server.SetServerB(B);
 	B.class_name("C: Client B");
@@ -37,10 +42,9 @@ int main(void) {
 	StringToHex(ClientK, 40, outdata);
 	printf_s("client k: %s\n", outdata.c_str());
 	StringToHex(ServerK, 40, outdata);
-	printf_s("server k: %s\n", outdata.c_str()); //Not sure if bugged or if this is what it really should be lol....
+	printf_s("server k: %s\n", outdata.c_str());
 
 	system("pause");
-
 
   return 1;
 }
